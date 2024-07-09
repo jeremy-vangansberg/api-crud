@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "api-crud"
+version = "0.1.0"
+description = "API CRUD data - simplon formations"
+authors = ["jeremy Vangansberg <jeremy.vangansberg@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+Scrapy = "^2.11.2"
+sqlalchemy = "^2.0.31"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
