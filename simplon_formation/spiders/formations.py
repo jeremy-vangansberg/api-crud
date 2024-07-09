@@ -24,9 +24,8 @@ class FormationsSpider(scrapy.Spider):
         item['name'] = response.xpath("//h1/text()").get()
         item['url'] = response.url
         url_rcnp = response.xpath("//a[contains(@href,'francecompetences.fr')]/@href").getall()
-        all_sessions_url = response.xpath("(//a[@class='btn btn-pricipale btn-formation'])[1]/@href")
 
-        if not (url_rcnp and all_sessions_url):
+        if not url_rcnp :
             yield item
 
         elif url_rcnp :
@@ -40,19 +39,19 @@ class FormationsSpider(scrapy.Spider):
         item = response.meta['item']
         remaining = response.meta['remaining'] - 1
 
-        item['formacodes_name'] = response.xpath("//button[contains(normalize-space(),'Formacode(s)')]/following-sibling::div//span/text()").getall() 
-        item['formacodes_code'] = response.xpath("//button[contains(normalize-space(),'Formacode(s)')]/following-sibling::div//p/text()").getall()
+        formacodes_name = response.xpath("//button[contains(normalize-space(),'Formacode(s)')]/following-sibling::div//span/text()").getall() 
+        formacodes_code = response.xpath("//button[contains(normalize-space(),'Formacode(s)')]/following-sibling::div//p/text()").getall()
+
+        item.setdefault('formacodes_name', []).extend(formacodes_name)
+        item.setdefault('formacodes_code', []).extend(formacodes_code)
+
+        # item['formacodes_name'] = formacodes_name
+        # item['formacodes_code'] = formacodes_code
+
+
         
         if remaining == 0:
-            all_sessions_url = response.xpath("(//a[@class='btn btn-pricipale btn-formation'])[1]/@href")
-            if all_sessions_url :
-                meta = {"item": item}
-                yield scrapy.Request(url=all_sessions_url, meta=meta, callback=self.parse_rncp)
-            else :
-                yield item
+            yield item
         else:
             response.meta['remaining'] = remaining
 
-    def parse_session(self, response):
-        item = response.meta['item']
-        item['session_name'] = response.xpath("(//a[@class='btn btn-pricipale btn-formation'])[1]")

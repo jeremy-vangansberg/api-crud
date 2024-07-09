@@ -5,6 +5,12 @@ class FormationsSpider(scrapy.Spider):
     name = "sessions"
     allowed_domains = ["simplon.co", "francecompetences.fr"]
     start_urls = ["https://simplon.co/notre-offre-de-formation.html#nos-formations0"]
+    custom_settings = {
+        'ITEM_PIPELINES' : {
+            "simplon_formation.pipelines.Cleaning": 300,
+            "simplon_formation.pipelines.SessionSaving": 400,
+        }
+    }
 
     def parse(self, response):
         # Parcours de tous les liens découvrez la formation
@@ -28,13 +34,13 @@ class FormationsSpider(scrapy.Spider):
         item = response.meta['item']
         sessions = response.xpath("//div[@class='smp-card']")
         for session in sessions : 
-            item['session_name'] = session.xpath(".//h2/text()").get()
+            item['sessionName'] = session.xpath(".//h2/text()").get()
             day = session.xpath(".//span[@class='day']/text()").get().strip()
             month = session.xpath(".//span[@class='month']/text()").get().strip()
             year = session.xpath(".//div[@class='year']/text()").get().strip()
-            item['date_limite_candidature'] = f"{day}/{month}/{year}"
+            item['dateLimiteCandidature'] = f"{day}/{month}/{year}"
             item['alternance'] = True if session.xpath(".//a[contains(text(),'lternance')]/text()") else False
-            item['date_debut'] = session.xpath(".//div[@class='card-session-info calendar']/text()").getall()
+            item['dateDebut'] = session.xpath(".//div[@class='card-session-info calendar']/text()").getall()
             item['duree'] = session.xpath(".//i[contains(text(),'hourglass_empty')]/parent::div/text()").getall()
             item['location'] = session.xpath(".//i[contains(text(),'location')]/parent::div/text()").getall()
             item['niveau'] = session.xpath(".//i[contains(text(),'school')]/parent::div/text()").getall()

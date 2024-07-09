@@ -8,7 +8,7 @@
 from itemadapter import ItemAdapter
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from model import Base, Formation, Rncp
+from model import Base, Formation, Rncp, Session as SessionModel
 
 
 class Cleaning:
@@ -26,15 +26,21 @@ class Cleaning:
                 cleaned_list = [item.replace(':','').strip() for item in initial_list if item.strip()]
                 adapter[key] = cleaned_list
         return item
+    
+
+
+
+
+
 
 
     def strip_and_list_to_str_all(self,item):
         adapter = ItemAdapter(item)
-        to_strip = ['location', 'duree', 'date_debut', 'date_limite_candidature', 'session_name', 'niveau']
+        to_strip = ['location', 'duree', 'dateDebut', 'dateLimiteCandidature', 'sessionName', 'niveau']
         for key in to_strip: 
             value = adapter.get(key)
             if value is not None :
-                if isinstance(value, list):
+                if not isinstance(value, str):
                     value = "".join(value)
                 adapter[key] = value.strip()
         return item
@@ -76,6 +82,42 @@ class FormationSaving:
                 session.add(rncp)
                 formation.rncps.append(rncp)
         
+        session.commit()
+        session.close()
+        return item
+
+    def close_spider(self, spider):
+        self.Session.close_all()
+
+class SessionSaving:
+    def open_spider(self, spider):
+        engine = create_engine('sqlite:///database.db')
+        Base.metadata.create_all(engine)
+        self.Session = sessionmaker(bind=engine)
+
+    def process_item(self, item, spider):
+        session = self.Session()
+        formation = session.query(Formation).filter_by(name=item['name']).first()
+
+        if not formation:
+            formation = Formation(
+                name=item['name'],
+                url=item['url']
+            )
+            session.add(formation)
+            session.commit()  # Commit here to get the formation ID
+
+        session_data = SessionModel(
+            formation_id=formation.id_formation,
+            session_name=item['sessionName'],
+            date_limite_candidature=item['dateLimiteCandidature'],
+            alternance=item['alternance'],
+            date_debut=item['dateDebut'],
+            duree=item['duree'],
+            location=item['location'],
+            niveau=item['niveau']
+        )
+        session.add(session_data)
         session.commit()
         session.close()
         return item

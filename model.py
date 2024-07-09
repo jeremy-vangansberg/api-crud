@@ -30,11 +30,13 @@ class Formation(Base):
 class Session(Base):
     __tablename__ = "session"
     id_session: Mapped[int] = mapped_column(primary_key=True)
+    session_name: Mapped[str] = mapped_column(String(100))
     formation_id: Mapped[int] = mapped_column(ForeignKey("formation.id_formation"))
     duree: Mapped[int] = mapped_column(Integer)
     niveau: Mapped[str] = mapped_column(String(100))
     location: Mapped[str] = mapped_column(String(100))
-    date_limite_candidature: Mapped[Date] = mapped_column(Date)
+    date_limite_candidature: Mapped[str] = mapped_column(String(100)) # à changer en date
+    date_debut: Mapped[str] = mapped_column(String(100)) # à changer en date
     alternance: Mapped[bool] = mapped_column(Boolean)
 
     # Relation inverse one-to-many avec Formation
